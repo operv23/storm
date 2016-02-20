@@ -2,6 +2,20 @@
 echo "hello"
 touch /tftpboot/freepbx_phonebook.xml
 chown -R asterisk /tftpboot/freepbx_phonebook.xml
+echo "Press '1' if you use /tftpboot"
+echo "Press '2' if you use /srv/tftp"
+echo "Press '3' if you use another way"
+read p 
+if [[ "$p" = "1" ]]; then
+	w='/tftpboot/'
+fi
+if [[ "$p" = "2" ]]; then
+	w='/srv/tftp/'
+fi
+if [[ "$p" = "3" ]]; then
+	echo "write your way to tftp. as the /.../../"
+	read w
+fi
 echo "
 <?php
 require_once('/etc/freepbx.conf');
@@ -22,7 +36,7 @@ mysql_select_db(\$DBdatabase, \$DBlink) or die(\"Could not find database.\");
 
 //Setup XMLWriter
 \$writer = new XMLWriter();
-\$writer->openURI('/tftpboot/freepbx_phonebook.xml'); //** If your TFTP server is using another root directory as /tfptboot, chang the path here!
+\$writer->openURI('"$w"freepbx_phonebook.xml'); //** If your TFTP server is using another root directory as /tfptboot, chang the path here!
 \$writer->setIndent(4);
 
 //Beginn output
@@ -46,4 +60,6 @@ while (\$contact=mysql_fetch_array(\$QUERYresult)){
 \$writer->flush();
 ?>
 " >> /var/www/html/freepbx_phonebook.php
+echo "* * * * * root /usr/bin/php5 /var/www/html/freepbx_phonebook.php" >> crontabe
+service cron reload
 
